@@ -1,0 +1,1 @@
+Vpr test_net.in test_arch.in test_place.out test_dum.out -nodisp -place_only -init_t 5 -exit_t 0.005 -alpha_t 0.9412 -inner_num 2

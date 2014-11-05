@@ -1,0 +1,301 @@
+sim-cache: SimpleScalar/PISA Tool Set version 3.0 of August, 2003.
+Copyright (c) 1994-2003 by Todd M. Austin, Ph.D. and SimpleScalar, LLC.
+All Rights Reserved. This version of SimpleScalar is licensed for academic
+non-commercial use.  No portion of this work may be used by any commercial
+entity, or for any commercial purpose, without the prior written permission
+of SimpleScalar, LLC (info@simplescalar.com).
+
+sim: command line: /home/astrid/dev/simpleScalar/simplesim-3.0-slow2/sim-cache -cache:dl1 dl1:128:32:2:l -cache:il1 il1:128:32:2:l -cache:il2 dl2 -cache:dl2 dl2:512:128:2:l Vpr test_net.in test_arch.in test_place.out test_dum.out -nodisp -place_only -init_t 5 -exit_t 0.005 -alpha_t 0.9412 -inner_num 2 
+
+sim: simulation started @ Tue Sep 23 13:01:54 2014, options follow:
+
+sim-cache: This simulator implements a functional cache simulator.  Cache
+statistics are generated for a user-selected cache and TLB configuration,
+which may include up to two levels of instruction and data cache (with any
+levels unified), and one level of instruction and data TLBs.  No timing
+information is generated.
+
+# -config                     # load configuration from a file
+# -dumpconfig                 # dump configuration to a file
+# -h                    false # print help message    
+# -v                    false # verbose operation     
+# -d                    false # enable debug message  
+# -i                    false # start in Dlite debugger
+-seed                       1 # random number generator seed (0 for timer seed)
+# -q                    false # initialize and terminate immediately
+# -chkpt               <null> # restore EIO trace execution from <fname>
+# -redir:sim           <null> # redirect simulator output to file (non-interactive only)
+# -redir:prog          <null> # redirect simulated program output to file
+-nice                       0 # simulator scheduling priority
+-max:inst                   0 # maximum number of inst's to execute
+-cache:dl1       dl1:128:32:2:l # l1 data cache config, i.e., {<config>|none}
+-cache:dl2       dl2:512:128:2:l # l2 data cache config, i.e., {<config>|none}
+-cache:il1       il1:128:32:2:l # l1 inst cache config, i.e., {<config>|dl1|dl2|none}
+-cache:il2                dl2 # l2 instruction cache config, i.e., {<config>|dl2|none}
+-tlb:itlb        itlb:16:4096:4:l # instruction TLB config, i.e., {<config>|none}
+-tlb:dtlb        dtlb:32:4096:4:l # data TLB config, i.e., {<config>|none}
+-flush                  false # flush caches on system calls
+-cache:icompress        false # convert 64-bit inst addresses to 32-bit inst equivalents
+# -pcstat              <null> # profile stat(s) against text addr's (mult uses ok)
+
+  The cache config parameter <config> has the following format:
+
+    <name>:<nsets>:<bsize>:<assoc>:<repl>
+
+    <name>   - name of the cache being defined
+    <nsets>  - number of sets in the cache
+    <bsize>  - block size of the cache
+    <assoc>  - associativity of the cache
+    <repl>   - block replacement strategy, 'l'-LRU, 'f'-FIFO, 'r'-random
+
+    Examples:   -cache:dl1 dl1:4096:32:1:l
+                -dtlb dtlb:128:4096:32:r
+
+  Cache levels can be unified by pointing a level of the instruction cache
+  hierarchy at the data cache hiearchy using the "dl1" and "dl2" cache
+  configuration arguments.  Most sensible combinations are supported, e.g.,
+
+    A unified l2 cache (il2 is pointed at dl2):
+      -cache:il1 il1:128:64:1:l -cache:il2 dl2
+      -cache:dl1 dl1:256:32:1:l -cache:dl2 ul2:1024:64:2:l
+
+    Or, a fully unified cache hierarchy (il1 pointed at dl1):
+      -cache:il1 dl1
+      -cache:dl1 ul1:256:32:1:l -cache:dl2 ul2:1024:64:2:l
+
+
+
+sim: ** starting functional simulation w/ caches **
+
+
+VPR FPGA Placement and Routing Program Version 4.00 (Beta 3) by V. Betz.
+Source completed August 19, 1997; compiled __DATE__.
+
+
+General Options:
+	The circuit will be placed but not routed.
+
+Placer Options:
+	User annealing schedule selected with:
+	Initial Temperature: 5
+	Exit (Final) Temperature: 0.005
+	Temperature Reduction factor (alpha_t): 0.9412
+	Number of moves in the inner loop is (num_blocks)^4/3 * 2
+	Placement cost type is linear congestion.
+	Placement will be performed once.
+	Placement channel width factor = 100.
+	Exponent used in placement cost: 1
+	Initial random seed: 1
+
+Reading the FPGA architectural description from test_arch.in.
+Successfully read test_arch.in.
+Pins per clb: 6.  Pads per row/column: 2.
+Subblocks per clb: 1.  Subblock LUT size: 4.
+Fc value is fraction of tracks in a channel.
+Fc_output: 1.  Fc_input: 1.  Fc_pad: 1.
+Switch block type: Subset.
+Distinct types of segments: 3.
+Distinct types of user-specified switches: 3.
+
+Reading the circuit netlist from test_net.in.
+Successfully read test_net.in.
+404 blocks, 339 nets, 0 global nets.
+274 clbs, 65 inputs, 65 outputs.
+The circuit will be mapped into a 17 x 17 array of clbs.
+
+Initial placement cost = 74.69514
+
+          T    Av. Cost  Ac Rate  Std Dev  R limit  Tot. Moves    Alpha
+   --------    --------  -------  -------  -------  ----------    -----
+          5    74.50284    0.991     0.89       17        5971    0.941
+      4.706    74.32072     0.99      1.1       17       11942    0.941
+     4.4293    74.57225    0.988     0.88       17       17913    0.941
+     4.1688     74.4318    0.989     0.94       17       23884    0.941
+     3.9237    74.30767    0.988     0.91       17       29855    0.941
+      3.693    74.58588    0.987     1.04       17       35826    0.941
+     3.4759     74.3665    0.985     0.81       17       41797    0.941
+     3.2715    74.50988    0.985     1.14       17       47768    0.941
+     3.0791    74.70271    0.989     0.93       17       53739    0.941
+     2.8981    74.11719    0.983     0.99       17       59710    0.941
+     2.7277    74.49639    0.986     0.87       17       65681    0.941
+     2.5673    74.39578    0.982        1       17       71652    0.941
+     2.4163    74.36607    0.982     0.78       17       77623    0.941
+     2.2742    73.90515     0.98     1.05       17       83594    0.941
+     2.1405    74.17177    0.978     1.01       17       89565    0.941
+     2.0146    73.90492    0.976     0.84       17       95536    0.941
+     1.8962    74.26313    0.976     0.98       17      101507    0.941
+     1.7847    74.46781    0.972     0.89       17      107478    0.941
+     1.6798    74.30098    0.975     0.97       17      113449    0.941
+      1.581    73.83265    0.969     0.83       17      119420    0.941
+      1.488    74.16579    0.968     1.09       17      125391    0.941
+     1.4005    73.97684    0.964     0.96       17      131362    0.941
+     1.3182    73.87561    0.964     0.94       17      137333    0.941
+     1.2407    73.89085    0.961     0.95       17      143304    0.941
+     1.1677    73.77167    0.962     0.95       17      149275    0.941
+     1.0991     73.8274     0.96     0.98       17      155246    0.941
+     1.0344    73.72869    0.951     0.82       17      161217    0.941
+     0.9736     73.6382    0.957     0.95       17      167188    0.941
+     0.9164    73.56707    0.946     0.98       17      173159    0.941
+     0.8625    73.43522     0.95     0.96       17      179130    0.941
+     0.8118    73.67483    0.938     0.92       17      185101    0.941
+      0.764    73.52535    0.942     1.05       17      191072    0.941
+     0.7191    73.39665    0.936     0.96       17      197043    0.941
+     0.6768    73.39725    0.935     1.01       17      203014    0.941
+      0.637    73.34154    0.927      0.9       17      208985    0.941
+     0.5996    72.35053    0.919      0.9       17      214956    0.941
+     0.5643     72.7949    0.916     0.84       17      220927    0.941
+     0.5311    72.93873     0.91     0.79       17      226898    0.941
+     0.4999    73.12916    0.913     0.76       17      232869    0.941
+     0.4705    72.31154    0.902     0.99       17      238840    0.941
+     0.4428    72.64673      0.9     0.78       17      244811    0.941
+     0.4168    72.29866     0.89     0.83       17      250782    0.941
+     0.3923    72.35657    0.888     1.04       17      256753    0.941
+     0.3692    72.25065    0.866     1.08       17      262724    0.941
+     0.3475    72.35028    0.876        1       17      268695    0.941
+     0.3271    72.24632    0.858     0.94       17      274666    0.941
+     0.3078    71.83666    0.856     0.87       17      280637    0.941
+     0.2897    71.78079    0.848      0.9       17      286608    0.941
+     0.2727    70.91895    0.831     1.18       17      292579    0.941
+     0.2567    71.69952     0.83     0.82       17      298550    0.941
+     0.2416    71.02469    0.816     0.96       17      304521    0.941
+     0.2274    70.82549    0.812     1.07       17      310492    0.941
+      0.214    70.73106    0.783     0.83       17      316463    0.941
+     0.2014     69.9226    0.771     1.09       17      322434    0.941
+     0.1896    69.38083    0.758     0.79       17      328405    0.941
+     0.1784    69.16519    0.737     0.92       17      334376    0.941
+     0.1679    68.94211    0.728     0.98       17      340347    0.941
+     0.1581    68.33427    0.704     0.92       17      346318    0.941
+     0.1488    68.59156    0.701     0.93       17      352289    0.941
+       0.14     68.3992    0.693     0.85       17      358260    0.941
+     0.1318    67.24477    0.657      0.9       17      364231    0.941
+      0.124    66.58103    0.637     0.83       17      370202    0.941
+     0.1167    66.70055    0.632     1.03       17      376173    0.941
+     0.1099    66.21788    0.607        1       17      382144    0.941
+     0.1034    65.42945    0.576     0.87       17      388115    0.941
+     0.0973    64.55469    0.555     1.21       17      394086    0.941
+     0.0916    64.15144    0.533     0.67       17      400057    0.941
+     0.0862    63.28132     0.51      0.7       17      406028    0.941
+     0.0812     63.2855    0.487     0.59       17      411999    0.941
+     0.0764    61.78717    0.469     0.64       17      417970    0.941
+     0.0719     61.1154    0.421     0.88       17      423941    0.941
+     0.0677      59.259    0.421     0.98   16.669      429912    0.941
+     0.0637    58.67922    0.399     0.71    16.35      435883    0.941
+     0.0599    57.98799    0.378      0.5   15.676      441854    0.941
+     0.0564    57.50221    0.352      0.7   14.712      447825    0.941
+     0.0531    56.12429    0.333     0.89    13.41      453796    0.941
+       0.05    55.11948    0.319     0.78    11.97      459767    0.941
+      0.047     54.5235     0.33     0.54   10.518      465738    0.941
+     0.0443    51.52638    0.313     0.72    9.357      471709    0.941
+     0.0417    50.85336    0.332     0.62    8.167      477680    0.941
+     0.0392    49.35859    0.332     0.77    7.282      483651    0.941
+     0.0369    48.28003    0.349     1.13    6.494      489622    0.941
+     0.0347    45.57524    0.371     0.48    5.902      495593    0.941
+     0.0327    45.61776    0.355      0.3    5.494      501564    0.941
+     0.0308    43.61783    0.336     0.69    5.028      507535    0.941
+      0.029    41.60734    0.359      0.4    4.507      513506    0.941
+     0.0273    41.74333    0.366     0.38    4.143      519477    0.941
+     0.0257    40.76546    0.402     0.33    3.836      525448    0.941
+     0.0242     40.1825    0.387     0.26     3.69      531419    0.941
+     0.0227    38.77068    0.372     0.58    3.494      537390    0.941
+     0.0214    38.09621    0.348     0.36    3.257      543361    0.941
+     0.0201    38.09547    0.444     0.32    2.958      549332    0.941
+      0.019    37.38273    0.417     0.23    2.969      555303    0.941
+     0.0178    36.73498    0.408     0.33    2.901      561274    0.941
+     0.0168    35.78829    0.387     0.41    2.809      567245    0.941
+     0.0158     35.3287    0.387     0.23     2.66      573216    0.941
+     0.0149    35.28193    0.364      0.3    2.518      579187    0.941
+      0.014    34.77749    0.359     0.13    2.326      585158    0.941
+     0.0132    34.64516    0.335     0.26    2.139      591129    0.941
+     0.0124    34.09829     0.44     0.19    1.914      597100    0.941
+     0.0117    33.47696    0.413     0.18    1.914      603071    0.941
+      0.011    33.35555    0.405     0.16    1.863      609042    0.941
+     0.0103    32.67212    0.385     0.13    1.798      615013    0.941
+     0.0097    32.64371    0.371     0.16    1.699      620984    0.941
+     0.0092    32.50079    0.353     0.13    1.581      626955    0.941
+     0.0086    32.15147    0.333     0.12    1.444      632926    0.941
+     0.0081    31.80273    0.313     0.14     1.29      638897    0.941
+     0.0076    31.62395    0.294     0.12    1.126      644868    0.941
+     0.0072    31.44476    0.279     0.14        1      650839    0.941
+     0.0068    31.32444    0.252     0.05        1      656810    0.941
+     0.0064    30.97026    0.231     0.23        1      662781    0.941
+      0.006    30.67705    0.227     0.09        1      668752    0.941
+     0.0056    30.55896    0.203     0.11        1      674723    0.941
+     0.0053    30.39613    0.188     0.05        1      680694    0.941
+          0     30.0993    0.068     0.14        1      686665 
+
+Cost recomputed from scratch is 29.956734.
+
+Completed placement consistency check successfully.
+
+Final Placement cost: 29.95806
+
+sim: ** simulation statistics **
+sim_num_insn             1557016398 # total number of instructions executed
+sim_num_refs              505084818 # total number of loads and stores executed
+sim_elapsed_time                316 # total simulation time in seconds
+sim_inst_rate          4927267.0823 # simulation speed (in insts/sec)
+il1.accesses             1557016398 # total number of accesses
+il1.hits                 1464495880 # total number of hits
+il1.misses                 92520518 # total number of misses
+il1.replacements           92520262 # total number of replacements
+il1.writebacks                    0 # total number of writebacks
+il1.invalidations                 0 # total number of invalidations
+il1.miss_rate                0.0594 # miss rate (i.e., misses/ref)
+il1.repl_rate                0.0594 # replacement rate (i.e., repls/ref)
+il1.wb_rate                  0.0000 # writeback rate (i.e., wrbks/ref)
+il1.inv_rate                 0.0000 # invalidation rate (i.e., invs/ref)
+dl1.accesses              513463487 # total number of accesses
+dl1.hits                  476449079 # total number of hits
+dl1.misses                 37014408 # total number of misses
+dl1.replacements           35658935 # total number of replacements
+dl1.writebacks             13606385 # total number of writebacks
+dl1.invalidations           1382661 # total number of invalidations
+dl1.miss_rate                0.0721 # miss rate (i.e., misses/ref)
+dl1.repl_rate                0.0694 # replacement rate (i.e., repls/ref)
+dl1.wb_rate                  0.0265 # writeback rate (i.e., wrbks/ref)
+dl1.inv_rate                 0.0027 # invalidation rate (i.e., invs/ref)
+dl2.accesses              142917435 # total number of accesses
+dl2.hits                  140725056 # total number of hits
+dl2.misses                  2192379 # total number of misses
+dl2.replacements            2191358 # total number of replacements
+dl2.writebacks               283923 # total number of writebacks
+dl2.invalidations                 0 # total number of invalidations
+dl2.miss_rate                0.0153 # miss rate (i.e., misses/ref)
+dl2.repl_rate                0.0153 # replacement rate (i.e., repls/ref)
+dl2.wb_rate                  0.0020 # writeback rate (i.e., wrbks/ref)
+dl2.inv_rate                 0.0000 # invalidation rate (i.e., invs/ref)
+itlb.accesses            1557016398 # total number of accesses
+itlb.hits                1557016343 # total number of hits
+itlb.misses                      55 # total number of misses
+itlb.replacements                 0 # total number of replacements
+itlb.writebacks                   0 # total number of writebacks
+itlb.invalidations                0 # total number of invalidations
+itlb.miss_rate               0.0000 # miss rate (i.e., misses/ref)
+itlb.repl_rate               0.0000 # replacement rate (i.e., repls/ref)
+itlb.wb_rate                 0.0000 # writeback rate (i.e., wrbks/ref)
+itlb.inv_rate                0.0000 # invalidation rate (i.e., invs/ref)
+dtlb.accesses             513463487 # total number of accesses
+dtlb.hits                 513463438 # total number of hits
+dtlb.misses                      49 # total number of misses
+dtlb.replacements                 0 # total number of replacements
+dtlb.writebacks                   0 # total number of writebacks
+dtlb.invalidations                0 # total number of invalidations
+dtlb.miss_rate               0.0000 # miss rate (i.e., misses/ref)
+dtlb.repl_rate               0.0000 # replacement rate (i.e., repls/ref)
+dtlb.wb_rate                 0.0000 # writeback rate (i.e., wrbks/ref)
+dtlb.inv_rate                0.0000 # invalidation rate (i.e., invs/ref)
+ld_text_base             0x00400000 # program text (code) segment base
+ld_text_size                 321360 # program text (code) size in bytes
+ld_data_base             0x10000000 # program initialized data segment base
+ld_data_size                  41396 # program init'ed `.data' and uninit'ed `.bss' size in bytes
+ld_stack_base            0x7fffc000 # program stack segment base (highest address in stack)
+ld_stack_size                 16384 # program initial stack size
+ld_prog_entry            0x00400140 # program entry point (initial PC)
+ld_environ_base          0x7fff8000 # program environment base address address
+ld_target_big_endian              0 # target executable endian-ness, non-zero if big endian
+mem.page_count                  129 # total number of pages allocated
+mem.page_mem                   516k # total size of memory pages allocated
+mem.ptab_misses                 129 # total first level page table misses
+mem.ptab_accesses        7257005030 # total page table accesses
+mem.ptab_miss_rate           0.0000 # first level page table miss rate
+

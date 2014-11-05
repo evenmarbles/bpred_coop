@@ -1,0 +1,28 @@
+CC 	= /usr/local/bin/gcc
+OPT	= -DSPEC_CPU2000_HP -DSYS_IS_USG -DSYS_HAS_IOCTL_PROTO -DSYS_HAS_TIME_PROTO -DSYS_HAS_CALLOC_PROTO
+SOURCES   = agcollec.c aggroup.c blister.c coding.c costab.c cyclotom.c    \
+	    eval.c finfield.c function.c gap.c gasman.c idents.c integer.c \
+	    list.c pcpresen.c permutat.c plist.c polynom.c range.c         \
+	    rational.c read.c record.c scanner.c set.c statemen.c string.c \
+	    system.c tietze.c unknown.c vecffe.c vector.c word.c
+
+ASM	= agcollec.s aggroup.s blister.s coding.s costab.s cyclotom.s    \
+	    eval.s finfield.s function.s gap.s gasman.s idents.s integer.s \
+	    list.s pcpresen.s permutat.s plist.s polynom.s range.s         \
+	    rational.s read.s record.s scanner.s set.s statemen.s string.s \
+	    system.s tietze.s unknown.s vecffe.s vector.s word.s
+
+OBJ	= agcollec.o aggroup.o blister.o coding.o costab.o cyclotom.o    \
+	    eval.o finfield.o function.o gap.o gasman.o idents.o integer.o \
+	    list.o pcpresen.o permutat.o plist.o polynom.o range.o         \
+	    rational.o read.o record.o scanner.o set.o statemen.o string.o \
+	    system.o tietze.o unknown.o vecffe.o vector.o word.o
+
+Gap: $(OBJ)
+	$(CC)  $(OPT)  -o Gap $(OBJ) -DSPEC_CPU2000_LP64 -Dalloca=_alloca -DUSG -lm
+
+$(OBJ): $(ASM)
+	$(CC) -c $(ASM)
+
+$(ASM): $(SOURCES)
+	$(CC) $(OPT) -O1 -S $(SOURCES) -DSPEC_CPU2000_LP64 -Dalloca=_alloca -DUSG

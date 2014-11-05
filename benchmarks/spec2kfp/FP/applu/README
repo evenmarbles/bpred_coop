@@ -1,0 +1,4 @@
+how to run the simulation:
+
+sim single_job < applu.in
+

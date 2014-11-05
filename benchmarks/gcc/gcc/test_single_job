@@ -1,0 +1,1 @@
+Gcc cccp.i -o cccp.s
