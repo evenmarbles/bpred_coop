@@ -221,6 +221,9 @@ struct bpred_dir_t *		/* branch direction predictor instance */
                   l2size);
         pred_dir->config.two.l2size = l2size;
 
+        if (l2split <= 0 && l2split > 3)
+            fatal("level-2 table split, `%d', must be greater than 0 and less than 4",
+                  l2split);
         pred_dir->config.two.l2split = l2split;
 
         if (!shift_width || shift_width > 30)
@@ -609,16 +612,43 @@ bpred_lookup(struct bpred_t *pred,	/* branch predictor instance */
         if ((MD_OP_FLAGS(op) & (F_CTRL|F_UNCOND)) != (F_CTRL|F_UNCOND))
         {
             char *twolev, *meta;
+            unsigned int dir_meta;
             twolev = bpred_dir_lookup (pred->dirpred.twolev, baddr);
             meta = bpred_dir_lookup (pred->dirpred.meta, baddr);
-            if (*meta >= 2)
-            {
-                twolev += pred->dirpred.twolev->config.two.l2size * sizeof(unsigned char);
+
+            switch(pred->dirpred.twolev->config.two.l2split) {
+            case 1:
+                /* always choose 0 */
+                dir_meta  = (*meta > 3);
+                break;
+            case 2:
+                /* map to 0 or 1 */
+                dir_meta  = (*meta >= 2);
+                break;
+            case 3:
+                /* map to SNT:0, ST:1, W:2 */
+                dir_meta  = 2;
+                if (*meta > 2)
+                {
+                    dir_meta  = 1;
+                }
+                else if (*meta < 1)
+                {
+                    dir_meta  = 0;
+                }
+                break;
+            case 4:
+                /* keep response as is */
+                dir_meta  = *meta;
+                break;
             }
+
+            /* chose direction predictor based on outcome of choice predictor */
+            twolev += dir_meta * pred->dirpred.twolev->config.two.l2size * sizeof(unsigned char);
 
             dir_update_ptr->pmeta = meta;
             dir_update_ptr->pdir1 = twolev;
-            dir_update_ptr->dir.meta  = (*meta >= 2);
+            dir_update_ptr->dir.meta  = dir_meta;
             dir_update_ptr->dir.twolev  = (*twolev >= 2);
         }
         break;
@@ -990,7 +1020,8 @@ bpred_update(struct bpred_t *pred,	/* branch predictor instance */
     {
         if (pred->class == BPredCoop)
         {
-            if (dir_update_ptr->dir.meta == (unsigned int)taken ||
+            if (dir_update_ptr->dir.meta == 2 ||
+                dir_update_ptr->dir.meta == (unsigned int)taken ||
                 dir_update_ptr->dir.twolev != (unsigned int)taken)
             {
                 /* we only update meta predictor if the choice is the same
