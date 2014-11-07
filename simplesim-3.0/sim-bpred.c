@@ -97,6 +97,11 @@ static int comb_nelt = 1;
 static int comb_config[1] =
 { /* meta_table_size */1024 };
 
+/* coop predictor config (<l2split> <meta_table_size>) */
+static int coop_nelt = 2;
+static int coop_config[2] =
+{ /* l2split */2, /* meta_table_size */1024 };
+
 /* return address stack (RAS) size */
 static int ras_size = 8;
 
@@ -169,6 +174,12 @@ sim_reg_options(struct opt_odb_t *odb)
                      /* default */comb_config,
                      /* print */TRUE, /* format */NULL, /* !accrue */FALSE);
 
+    opt_reg_int_list(odb, "-bpred:coop",
+                     "coop predictor config (<l2split> <meta_table_size>)",
+                     coop_config, coop_nelt, &coop_nelt,
+                     /* default */coop_config,
+                     /* print */TRUE, /* format */NULL, /* !accrue */FALSE);
+
     opt_reg_int(odb, "-bpred:ras",
                 "return address stack size (0 for no return stack)",
                 &ras_size, /* default */ras_size,
@@ -188,12 +199,12 @@ sim_check_options(struct opt_odb_t *odb, int argc, char **argv)
     if (!mystricmp(pred_type, "taken"))
     {
         /* static predictor, not taken */
-        pred = bpred_create(BPredTaken, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+        pred = bpred_create(BPredTaken, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
     }
     else if (!mystricmp(pred_type, "nottaken"))
     {
         /* static predictor, taken */
-        pred = bpred_create(BPredNotTaken, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+        pred = bpred_create(BPredNotTaken, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
     }
     else if (!mystricmp(pred_type, "bimod"))
     {
@@ -204,9 +215,10 @@ sim_check_options(struct opt_odb_t *odb, int argc, char **argv)
 
         /* bimodal predictor, bpred_create() checks BTB_SIZE */
         pred = bpred_create(BPred2bit,
-                            /* bimod table size */bimod_config[0],
+                /* bimod table size */bimod_config[0],
                 /* 2lev l1 size */0,
                 /* 2lev l2 size */0,
+                /* coop l2 table split*/0,
                 /* meta table size */0,
                 /* history reg size */0,
                 /* history xor address */0,
@@ -223,9 +235,10 @@ sim_check_options(struct opt_odb_t *odb, int argc, char **argv)
             fatal("bad btb config (<num_sets> <associativity>)");
 
         pred = bpred_create(BPred2Level,
-                            /* bimod table size */0,
-                            /* 2lev l1 size */twolev_config[0],
+                /* bimod table size */0,
+                /* 2lev l1 size */twolev_config[0],
                 /* 2lev l2 size */twolev_config[1],
+                /* coop l2 table split*/1,
                 /* meta table size */0,
                 /* history reg size */twolev_config[2],
                 /* history xor address */twolev_config[3],
@@ -246,10 +259,33 @@ sim_check_options(struct opt_odb_t *odb, int argc, char **argv)
             fatal("bad btb config (<num_sets> <associativity>)");
 
         pred = bpred_create(BPredComb,
-                            /* bimod table size */bimod_config[0],
+                /* bimod table size */bimod_config[0],
                 /* l1 size */twolev_config[0],
                 /* l2 size */twolev_config[1],
+                /* coop l2 table split*/1,
                 /* meta table size */comb_config[0],
+                /* history reg size */twolev_config[2],
+                /* history xor address */twolev_config[3],
+                /* btb sets */btb_config[0],
+                /* btb assoc */btb_config[1],
+                /* ret-addr stack size */ras_size);
+    }
+    else if (!mystricmp(pred_type, "coop"))
+    {
+        /* coop predictor, bpred_create() checks args */
+        if (twolev_nelt != 4)
+            fatal("bad 2-level pred config (<l1size> <l2size> <hist_size> <xor>)");
+        if (coop_nelt != 2)
+            fatal("bad coop predictor config (<l2split> <meta_table_size>)");
+        if (btb_nelt != 2)
+            fatal("bad btb config (<num_sets> <associativity>)");
+
+        pred = bpred_create(BPredCoop,
+                /* bimod table size */0,
+                /* 2lev l1 size */twolev_config[0],
+                /* 2lev l2 size */twolev_config[1],
+                /* coop l2 table split*/coop_config[0],
+                /* meta table size */coop_config[1],
                 /* history reg size */twolev_config[2],
                 /* history xor address */twolev_config[3],
                 /* btb sets */btb_config[0],
