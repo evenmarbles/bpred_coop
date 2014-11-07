@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE QtCreatorProject>
-<!-- Written by QtCreator 3.0.1, 2014-11-05T15:57:35. -->
+<!-- Written by QtCreator 3.0.1, 2014-11-07T10:28:47. -->
 <qtcreator>
  <data>
   <variable>ProjectExplorer.Project.ActiveTarget</variable>
@@ -154,7 +154,7 @@
     </valuelist>
     <value type="int" key="PE.EnvironmentAspect.Base">2</value>
     <valuelist type="QVariantList" key="PE.EnvironmentAspect.Changes"/>
-    <value type="QString" key="ProjectExplorer.CustomExecutableRunConfiguration.Arguments"> -bpred 2lev -bpred:2lev 1 2 4 1 ~/git/benchmarks/gcc/gcc/Gcc ~/git/benchmarks/gcc/gcc/cccp.i -o ~/git/benchmarks/gcc/gcc/cccp.s</value>
+    <value type="QString" key="ProjectExplorer.CustomExecutableRunConfiguration.Arguments">-bpred coop -bpred:2lev 1 2 4 1 ~/git/bpred_coop/benchmarks/gcc/gcc/Gcc ~/git/bpred_coop/benchmarks/gcc/gcc/cccp.i -o ~/git/bpred_coop/benchmarks/gcc/gcc/cccp.s</value>
     <value type="QString" key="ProjectExplorer.CustomExecutableRunConfiguration.Executable">/home/astrid/git/bpred_coop/simplesim-3.0/sim-bpred</value>
     <value type="bool" key="ProjectExplorer.CustomExecutableRunConfiguration.UseTerminal">false</value>
     <value type="QString" key="ProjectExplorer.CustomExecutableRunConfiguration.WorkingDirectory">%{buildDir}</value>
