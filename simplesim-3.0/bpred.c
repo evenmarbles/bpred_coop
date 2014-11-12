@@ -64,17 +64,17 @@
 
 /* create a branch predictor */
 struct bpred_t *			/* branch predictory instance */
-        bpred_create(enum bpred_class class,	/* type of predictor to create */
-                     unsigned int bimod_size,	/* bimod table size */
-                     unsigned int l1size,       /* 2lev l1 table size */
-                     unsigned int l2size,       /* 2lev l2 table size */
-                     unsigned int l2split,      /* coop l2 table split */
-                     unsigned int meta_size,	/* meta table size */
-                     unsigned int shift_width,	/* history register width */
-                     unsigned int xor,          /* history xor address flag */
-                     unsigned int btb_sets,     /* number of sets in BTB */
-                     unsigned int btb_assoc,	/* BTB associativity */
-                     unsigned int retstack_size) /* num entries in ret-addr stack */
+        bpred_create(enum bpred_class class,            /* type of predictor to create */
+                     unsigned int bimod_size,           /* bimod table size */
+                     unsigned int l1size,               /* 2lev l1 table size */
+                     unsigned int l2size,               /* 2lev l2 table size */
+                     unsigned int l2split,              /* coop l2 table split */
+                     unsigned int meta_size,            /* meta table size */
+                     unsigned int shift_width,          /* history register width */
+                     unsigned int xor,                  /* history xor address flag */
+                     unsigned int btb_sets,             /* number of sets in BTB */
+                     unsigned int btb_assoc,            /* BTB associativity */
+                     unsigned int retstack_size)        /* num entries in ret-addr stack */
 {
     struct bpred_t *pred;
 
@@ -101,7 +101,7 @@ struct bpred_t *			/* branch predictory instance */
 
         /* 2-level component */
         pred->dirpred.twolev =
-                bpred_dir_create(BPred2Level, l1size, l2size, l2split, shift_width, xor);
+                bpred_dir_create(BPred2Level, l1size, l2size, 0, shift_width, xor);
 
         /* metapredictor component */
         pred->dirpred.meta =
@@ -111,7 +111,7 @@ struct bpred_t *			/* branch predictory instance */
 
     case BPred2Level:
         pred->dirpred.twolev =
-                bpred_dir_create(class, l1size, l2size, l2split, shift_width, xor);
+                bpred_dir_create(class, l1size, l2size, 0, shift_width, xor);
 
         break;
 
@@ -190,13 +190,12 @@ struct bpred_t *			/* branch predictory instance */
 
 /* create a branch direction predictor */
 struct bpred_dir_t *		/* branch direction predictor instance */
-        bpred_dir_create (
-        enum bpred_class class,     /* type of predictor to create */
-        unsigned int l1size,	 	/* level-1 table size */
-        unsigned int l2size,	 	/* level-2 table size (if relevant) */
-        unsigned int l2split,       /* coop l2 table split */
-        unsigned int shift_width,	/* history register width */
-        unsigned int xor)	    	/* history xor address flag */
+        bpred_dir_create (enum bpred_class class,   /* type of predictor to create */
+                unsigned int l1size,                /* level-1 table size */
+                unsigned int l2size,                /* level-2 table size (if relevant) */
+                unsigned int l2split,               /* coop l2 table split */
+                unsigned int shift_width,           /* history register width */
+                unsigned int xor)                   /* history xor address flag */
 {
     struct bpred_dir_t *pred_dir;
     unsigned int cnt;
@@ -221,28 +220,48 @@ struct bpred_dir_t *		/* branch direction predictor instance */
                   l2size);
         pred_dir->config.two.l2size = l2size;
 
-        if (l2split <= 0 && l2split > 3)
-            fatal("level-2 table split, `%d', must be greater than 0 and less than 4",
-                  l2split);
-        pred_dir->config.two.l2split = l2split;
-
         if (!shift_width || shift_width > 30)
             fatal("shift register width, `%d', must be non-zero and positive",
                   shift_width);
         pred_dir->config.two.shift_width = shift_width;
+
+        pred_dir->config.two.l2split = l2split;
+
+        if (l2split > 1) {
+            if (l2split > 3)
+                fatal("level-2 table split, `%d', must be 1, 2, or 3",
+                      l2split);
+
+            if (l2split == 2) {
+                pred_dir->config.two.l2split_size[0] = l2size * 0.5;
+                pred_dir->config.two.l2split_size[1] = l2size * 0.5;
+
+                pred_dir->config.two.l2split_shift_width[0] = shift_width-1;
+                pred_dir->config.two.l2split_shift_width[1] = shift_width-1;
+            }
+            else if (l2split == 3) {
+                pred_dir->config.two.l2split_size[0] = l2size * 0.25;
+                pred_dir->config.two.l2split_size[1] = l2size * 0.25;
+                pred_dir->config.two.l2split_size[2] = l2size * 0.5;
+
+                pred_dir->config.two.l2split_shift_width[0] = shift_width-2;
+                pred_dir->config.two.l2split_shift_width[1] = shift_width-2;
+                pred_dir->config.two.l2split_shift_width[2] = shift_width-1;
+            }
+        }
 
         pred_dir->config.two.xor = xor;
         pred_dir->config.two.shiftregs = calloc(l1size, sizeof(int));
         if (!pred_dir->config.two.shiftregs)
             fatal("cannot allocate shift register table");
 
-        pred_dir->config.two.l2table = calloc(l2split*l2size, sizeof(unsigned char));
+        pred_dir->config.two.l2table = calloc(l2size, sizeof(unsigned char));
         if (!pred_dir->config.two.l2table)
             fatal("cannot allocate second level table");
 
         /* initialize counters to weakly this-or-that */
         flipflop = 1;
-        for (cnt = 0; cnt < l2split*l2size; cnt++)
+        for (cnt = 0; cnt < l2size; cnt++)
         {
             pred_dir->config.two.l2table[cnt] = flipflop;
             flipflop = 3 - flipflop;
@@ -519,7 +538,8 @@ bpred_after_priming(struct bpred_t *bpred)
 /* predicts a branch direction */
 char *						/* pointer to counter */
 bpred_dir_lookup(struct bpred_dir_t *pred_dir,	/* branch dir predictor inst */
-                 md_addr_t baddr)               /* branch address */
+                 md_addr_t baddr,               /* branch address */
+                 int split)                     /* the chosen split */
 {
     unsigned char *p = NULL;
 
@@ -532,6 +552,14 @@ bpred_dir_lookup(struct bpred_dir_t *pred_dir,	/* branch dir predictor inst */
         /* traverse 2-level tables */
         l1index = (baddr >> MD_BR_SHIFT) & (pred_dir->config.two.l1size - 1);
         l2index = pred_dir->config.two.shiftregs[l1index];
+
+        int shift_width = pred_dir->config.two.shift_width;
+        int l2size = pred_dir->config.two.l2size;
+        if (pred_dir->config.two.l2split > 1) {
+            shift_width = pred_dir->config.two.l2split_shift_width[split];
+            l2size = pred_dir->config.two.l2split_size[split];
+        }
+
         if (pred_dir->config.two.xor)
         {
 #if 1
@@ -540,9 +568,9 @@ bpred_dir_lookup(struct bpred_dir_t *pred_dir,	/* branch dir predictor inst */
                part of the index, take the lower order address bits for the
                other part of the index, rather than the higher order ones */
             l2index = (((l2index ^ (baddr >> MD_BR_SHIFT))
-                        & ((1 << pred_dir->config.two.shift_width) - 1))
+                        & ((1 << shift_width) - 1))
                        | ((baddr >> MD_BR_SHIFT)
-                          << pred_dir->config.two.shift_width));
+                          << shift_width));
 #else
             l2index = l2index ^ (baddr >> MD_BR_SHIFT);
 #endif
@@ -551,9 +579,16 @@ bpred_dir_lookup(struct bpred_dir_t *pred_dir,	/* branch dir predictor inst */
         {
             l2index =
                     l2index
-                    | ((baddr >> MD_BR_SHIFT) << pred_dir->config.two.shift_width);
+                    | ((baddr >> MD_BR_SHIFT) << shift_width);
         }
-        l2index = l2index & (pred_dir->config.two.l2size - 1);
+        l2index = l2index & (l2size - 1);
+
+        /* choose from the correct split */
+        int i = 0;
+        for (i = 0; i < split; i++)
+        {
+            l2index += pred_dir->config.two.l2split_size[i];
+        }
 
         /* get a pointer to prediction state information */
         p = &pred_dir->config.two.l2table[l2index];
@@ -612,53 +647,39 @@ bpred_lookup(struct bpred_t *pred,	/* branch predictor instance */
         if ((MD_OP_FLAGS(op) & (F_CTRL|F_UNCOND)) != (F_CTRL|F_UNCOND))
         {
             char *twolev, *meta;
-            unsigned int dir_meta;
-            twolev = bpred_dir_lookup (pred->dirpred.twolev, baddr);
-            meta = bpred_dir_lookup (pred->dirpred.meta, baddr);
+            unsigned int dir_meta = 0;
+            meta = bpred_dir_lookup (pred->dirpred.meta, baddr, 0);
 
-            switch(pred->dirpred.twolev->config.two.l2split) {
-            case 1:
-                /* always choose 0 */
-                dir_meta  = (*meta > 3);
-                break;
+            switch (pred->dirpred.twolev->config.two.l2split) {
             case 2:
                 /* map to 0 or 1 */
                 dir_meta  = (*meta >= 2);
                 break;
             case 3:
                 /* map to SNT:0, ST:1, W:2 */
-                dir_meta  = 2;
+                dir_meta = 2;
                 if (*meta > 2)
-                {
                     dir_meta  = 1;
-                }
                 else if (*meta < 1)
-                {
                     dir_meta  = 0;
-                }
-                break;
-            case 4:
-                /* keep response as is */
-                dir_meta  = *meta;
                 break;
             }
 
-            /* chose direction predictor based on outcome of choice predictor */
-            twolev += dir_meta * pred->dirpred.twolev->config.two.l2size * sizeof(unsigned char);
+            twolev = bpred_dir_lookup (pred->dirpred.twolev, baddr, dir_meta);
 
             dir_update_ptr->pmeta = meta;
             dir_update_ptr->pdir1 = twolev;
-            dir_update_ptr->dir.meta  = dir_meta;
-            dir_update_ptr->dir.twolev  = (*twolev >= 2);
+            dir_update_ptr->dir.meta = dir_meta;
+            dir_update_ptr->dir.twolev = (*twolev >= 2);
         }
         break;
     case BPredComb:
         if ((MD_OP_FLAGS(op) & (F_CTRL|F_UNCOND)) != (F_CTRL|F_UNCOND))
         {
             char *bimod, *twolev, *meta;
-            bimod = bpred_dir_lookup (pred->dirpred.bimod, baddr);
-            twolev = bpred_dir_lookup (pred->dirpred.twolev, baddr);
-            meta = bpred_dir_lookup (pred->dirpred.meta, baddr);
+            bimod = bpred_dir_lookup (pred->dirpred.bimod, baddr, 0);
+            twolev = bpred_dir_lookup (pred->dirpred.twolev, baddr, 0);
+            meta = bpred_dir_lookup (pred->dirpred.meta, baddr, 0);
             dir_update_ptr->pmeta = meta;
             dir_update_ptr->dir.meta  = (*meta >= 2);
             dir_update_ptr->dir.bimod = (*bimod >= 2);
@@ -679,14 +700,14 @@ bpred_lookup(struct bpred_t *pred,	/* branch predictor instance */
         if ((MD_OP_FLAGS(op) & (F_CTRL|F_UNCOND)) != (F_CTRL|F_UNCOND))
         {
             dir_update_ptr->pdir1 =
-                    bpred_dir_lookup (pred->dirpred.twolev, baddr);
+                    bpred_dir_lookup (pred->dirpred.twolev, baddr, 0);
         }
         break;
     case BPred2bit:
         if ((MD_OP_FLAGS(op) & (F_CTRL|F_UNCOND)) != (F_CTRL|F_UNCOND))
         {
             dir_update_ptr->pdir1 =
-                    bpred_dir_lookup (pred->dirpred.bimod, baddr);
+                    bpred_dir_lookup (pred->dirpred.bimod, baddr, 0);
         }
         break;
     case BPredTaken:

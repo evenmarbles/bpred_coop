@@ -132,13 +132,15 @@ struct bpred_dir_t {
             unsigned char *table;	/* prediction state table */
         } bimod;
         struct {
-            int l1size;             /* level-1 size, number of history regs */
-            int l2size;             /* level-2 size, number of pred states */
-            int l2split;            /* level-2 prediction state table split */
-            int shift_width;		/* amount of history in level-1 shift regs */
-            int xor;                /* history xor address flag */
-            int *shiftregs;         /* level-1 history table */
-            unsigned char *l2table;	/* level-2 prediction state table */
+            int l1size;                 /* level-1 size, number of history regs */
+            int l2size;                 /* level-2 size, number of pred states */
+            int l2split;                /* level-2 prediction state table split */
+            int l2split_size[3];        /* level-2 size, number of pred states */
+            int l2split_shift_width[3];	/* amount of history in level-1 shift regs */
+            int shift_width;            /* amount of history in level-1 shift regs */
+            int xor;                    /* history xor address flag */
+            int *shiftregs;             /* level-1 history table */
+            unsigned char *l2table;     /* level-2 prediction state table */
         } two;
     } config;
 };
@@ -197,27 +199,27 @@ struct bpred_update_t {
 
 /* create a branch predictor */
 struct bpred_t *			/* branch predictory instance */
-        bpred_create(enum bpred_class class,	/* type of predictor to create */
-                     unsigned int bimod_size,	/* bimod table size */
-                     unsigned int l1size,       /* level-1 table size */
-                     unsigned int l2size,       /* level-2 table size */
-                     unsigned int l2split,      /* coop l2 table split */
-                     unsigned int meta_size,	/* meta predictor table size */
-                     unsigned int shift_width,	/* history register width */
-                     unsigned int xor,          /* history xor address flag */
-                     unsigned int btb_sets,     /* number of sets in BTB */
-                     unsigned int btb_assoc,	/* BTB associativity */
-                     unsigned int retstack_size);/* num entries in ret-addr stack */
+        bpred_create(enum bpred_class class,            /* type of predictor to create */
+                     unsigned int bimod_size,           /* bimod table size */
+                     unsigned int l1size,               /* level-1 table size */
+                     unsigned int l2size,               /* level-2 table size */
+                     unsigned int l2split,              /* coop l2 table split */
+                     unsigned int meta_size,            /* meta predictor table size */
+                     unsigned int shift_width,          /* history register width */
+                     unsigned int xor,                  /* history xor address flag */
+                     unsigned int btb_sets,             /* number of sets in BTB */
+                     unsigned int btb_assoc,            /* BTB associativity */
+                     unsigned int retstack_size);       /* num entries in ret-addr stack */
 
 /* create a branch direction predictor */
 struct bpred_dir_t *		/* branch direction predictor instance */
         bpred_dir_create (
-        enum bpred_class class,     /* type of predictor to create */
-        unsigned int l1size,		/* level-1 table size */
-        unsigned int l2size,		/* level-2 table size (if relevant) */
-        unsigned int l2split,      /* coop l2 table split */
-        unsigned int shift_width,	/* history register width */
-        unsigned int xor);          /* history xor address flag */
+        enum bpred_class class,             /* type of predictor to create */
+        unsigned int l1size,                /* level-1 table size */
+        unsigned int l2size,                /* level-2 table size (if relevant) */
+        unsigned int l2split,               /* coop l2 table split */
+        unsigned int shift_width,           /* history register width */
+        unsigned int xor);                  /* history xor address flag */
 
 /* print branch predictor configuration */
 void
